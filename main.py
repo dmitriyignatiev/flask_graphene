@@ -1,16 +1,24 @@
-# This is a sample Python script.
+from flask import Flask
+from flask_graphql import GraphQLView
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from sales.models import db_session
+from sales.api.queries import schema
 
+app = Flask(__name__)
+app.debug = True
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+app.add_url_rule(
+    '/graphql',
+    view_func=GraphQLView.as_view(
+        'graphql',
+        schema=schema,
+        graphiql=True # for having the GraphiQL interface
+    )
+)
 
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db_session.remove()
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm!')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    app.run()
