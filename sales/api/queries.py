@@ -1,5 +1,6 @@
 import graphene
 from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
+from graphene_sqlalchemy_filter import FilterableConnectionField, FilterSet
 
 from sales.api.mutations import myMutation
 from sales.models import (
@@ -16,7 +17,7 @@ class CustomNode_(graphene.Node):
 
 
 
-from graphene_sqlalchemy_filter import FilterableConnectionField, FilterSet
+
 
 class UserFilter(FilterSet):
     is_admin = graphene.Boolean()
@@ -25,9 +26,31 @@ class UserFilter(FilterSet):
         model = UserModel
         fields = {
             'name': ['eq', 'ne', 'in', 'ilike'],
+            'id': ['eq', 'ne', 'in', 'ilike'],
             'is_active': [...],  # shortcut!
         }
 
+class CustomerFilter(FilterSet):
+    is_admin = graphene.Boolean()
+
+    class Meta:
+        model = CustomerModel
+        fields = {
+            'name': ['eq', 'ne', 'in', 'ilike'],
+            'id': ['eq', 'ne', 'in', 'ilike'],
+            'is_active': [...],  # shortcut!
+        }
+
+class DealFilter(FilterSet):
+    is_admin = graphene.Boolean()
+
+    class Meta:
+        model = DealModel
+        fields = {
+            'name': ['eq', 'ne', 'in', 'ilike'],
+            'id': ['eq', 'ne', 'in', 'ilike'],
+            'is_active': [...],  # shortcut!
+        }
 
 
 class User(SQLAlchemyObjectType):
@@ -56,12 +79,11 @@ class New(graphene.ObjectType):
 
 class Query(New):
 
-    user = CustomNode_.Field(User)
+    all_users = FilterableConnectionField(User.connection,
+                                          filters=UserFilter())
 
-    all_users = FilterableConnectionField(User.connection, filters=UserFilter())
+    all_deals = FilterableConnectionField(Deal.connection, filters=DealFilter(), sort=None)
 
-    all_deals = SQLAlchemyConnectionField(Deal.connection, sort=None)
-
-    all_customers=SQLAlchemyConnectionField(Customer.connection, sort=None)
+    all_customers=FilterableConnectionField(Customer.connection, filters=CustomerFilter())
 
 schema = graphene.Schema(query=Query, mutation=myMutation)

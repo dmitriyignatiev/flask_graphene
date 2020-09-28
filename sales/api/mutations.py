@@ -11,6 +11,11 @@ class User_test(graphene.ObjectType):
     email = graphene.String()
     deal_id = graphene.Int()
 
+class CustomerInput(graphene.ObjectType):
+    id = graphene.Int()
+    name = graphene.String()
+    deal_id = graphene.Int()
+
 
 class CreateUser(graphene.Mutation):
     class Arguments:
@@ -143,28 +148,25 @@ class DeleteDeal(graphene.Mutation):
         return DeleteDeal(ok=ok)
 
 
-class CustomerCreate(CreateUser):
+class CustomerCreate(graphene.Mutation):
     class Arguments:
         name = graphene.String()
         deal_id = graphene.Int()
 
     ok = graphene.Boolean()
-    customer = graphene.Field(lambda: User_test)
+    customer = graphene.Field(lambda: CustomerInput)
 
     def mutate(root, info, **kwargs):
         name = kwargs.get('name')
-        email = kwargs.get('email')
+        # email = kwargs.get('email')
         deal_id = kwargs.get('deal_id')
 
         try:
             customer = Customer(name=name)
             db.add(customer)
+            deal = db.query(Deal).filter_by(id=deal_id).first()
+            customer.deal.append(deal)
             db.commit()
-            print(customer.id)
-            table = user_deal_table(customers_id=customer.id, deals_id=deal_id)
-            db.add(table)
-            db.commit()
-
         except IntegrityError:
             db.rollback()
             print('customer exist')
@@ -183,4 +185,5 @@ class myMutation(graphene.ObjectType):
     delete_deal = DeleteDeal.Field()
 
     customer_create = CustomerCreate.Field()
+
 
