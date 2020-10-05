@@ -1,11 +1,17 @@
 from flask import Flask
+from flask_cors import CORS
 from flask_graphql import GraphQLView
 
 from sales.models import db_session
 from sales.api.queries import schema
 
+
+
+
 app = Flask(__name__)
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
 app.debug = True
+
 
 app.add_url_rule(
     '/graphql',
@@ -13,6 +19,8 @@ app.add_url_rule(
         'graphql',
         schema=schema,
         graphiql=True # for having the GraphiQL interface
+
+
     )
 )
 

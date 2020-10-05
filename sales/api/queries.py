@@ -17,8 +17,6 @@ class CustomNode_(graphene.Node):
 
 
 
-
-
 class UserFilter(FilterSet):
     is_admin = graphene.Boolean()
 
