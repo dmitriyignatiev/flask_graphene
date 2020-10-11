@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sales import models
 from sales.models import User, Base, Deal, Customer, user_deal_table
 from sales.models import db_session as db
+from sales.db_session import db_session_
 
 class User_test(graphene.ObjectType):
     id = graphene.Int()
@@ -17,6 +18,16 @@ class CustomerInput(graphene.ObjectType):
     deal_id = graphene.Int()
 
 
+class DealSchema(graphene.ObjectType):
+    name = graphene.String()
+    start_date = graphene.Date()
+    stage_name = graphene.String()
+    net_per_month = graphene.Float()
+    gross_per_month = graphene.Float()
+    user_id = graphene.Int()
+
+
+
 class CreateUser(graphene.Mutation):
     class Arguments:
         name = graphene.String()
@@ -28,13 +39,10 @@ class CreateUser(graphene.Mutation):
     def mutate(root, info, **kwargs):
         name = kwargs.get('name')
         email = kwargs.get('email')
-        try:
+
+        with db_session_() as db_session:
             user = User(email=email, name=name)
-            db.add(user)
-            db.commit()
-        except IntegrityError:
-            db.rollback()
-            print('user exist')
+            db_session.add(user)
         ok = True
         return CreateUser(user=user, ok=ok)
 
@@ -52,15 +60,10 @@ class UpdateUser(graphene.Mutation):
         name = kwargs.get('name')
         email = kwargs.get('email')
         id= kwargs.get('id')
-        try:
-            user = db.query(User).filter(User.id == id).first()
-            if user:
-                user.name = name
-                user.email = email
-                db.commit()
-        except IntegrityError:
-            db.rollback()
-            print('user exist')
+        with db_session_() as db_session:
+            user  = db_session.query(User).filter(User.id == id).first()
+            user.name = name
+            user.email = email
         ok = True
         return UpdateUser(user=user, ok=ok)
 
@@ -72,12 +75,12 @@ class DeleteUser(graphene.Mutation):
     ok = graphene.String()
 
     def mutate(self, info, id):
-        user = db.query(User).filter(User.id == id).first()
-        if user:
-                db.delete(user)
-                db.commit()
-                ok = 'User was delete successfully'
-        else:
+        with db_session_() as db_session:
+            user = db_session.query(User).filter(User.id == id).first()
+            if user:
+                    db_session.delete(user)
+                    ok = 'User was delete successfully'
+            else:
                 ok = 'User do not exist'
         return UpdateUser(ok=ok)
 
@@ -92,6 +95,7 @@ class CreateDeal(graphene.Mutation):
         user_id = graphene.Int()
 
     ok = graphene.String()
+    deal = graphene.Field(DealSchema)
 
     def mutate(self, info, **kwargs):
         deal = Deal(**kwargs)
@@ -102,7 +106,7 @@ class CreateDeal(graphene.Mutation):
         except IntegrityError:
             db.rollback()
             ok = 'UPS'
-        return CreateDeal(ok=ok)
+        return CreateDeal(ok=ok, deal=deal)
 
 
 class UpdateDeal(graphene.Mutation):

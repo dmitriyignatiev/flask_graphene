@@ -3,6 +3,7 @@ from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
 from graphene_sqlalchemy_filter import FilterableConnectionField, FilterSet
 
 from sales.api.mutations import myMutation
+# from sales.api.subscriptions import Subscription
 from sales.models import (
                           User as UserModel,
                           Deal as DealModel,
@@ -75,7 +76,25 @@ class New(graphene.ObjectType):
 
 
 
-class Query(New):
+import graphene
+import graphene_sqlalchemy
+
+from main import app
+from sales.models import User
+
+
+class Subscription(graphene.ObjectType):
+    users = graphene_sqlalchemy.SQLAlchemyConnectionField(
+        User,
+        active=graphene.Boolean()
+    )
+
+    def resolve_users(self, args, context, info):
+        with app.app_context():
+            query = User.get_query(context)
+            return query.filter_by(id=info.root_value.get('id'))
+
+class Query_(graphene.ObjectType):
 
     all_users = FilterableConnectionField(User.connection,
                                           filters=UserFilter())
@@ -84,4 +103,7 @@ class Query(New):
 
     all_customers=FilterableConnectionField(Customer.connection, filters=CustomerFilter())
 
-schema = graphene.Schema(query=Query, mutation=myMutation)
+schema = graphene.Schema(query=Query_,
+                         mutation=myMutation,
+                         # subscription=Subscription
+                         )
