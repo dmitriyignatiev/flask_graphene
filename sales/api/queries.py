@@ -1,9 +1,11 @@
 import graphene
 from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
 from graphene_sqlalchemy_filter import FilterableConnectionField, FilterSet
+from rx import Observable
+import random
 
 from sales.api.mutations import myMutation
-# from sales.api.subscriptions import Subscription
+
 from sales.models import (
                           User as UserModel,
                           Deal as DealModel,
@@ -76,34 +78,40 @@ class New(graphene.ObjectType):
 
 
 
-import graphene
-import graphene_sqlalchemy
-
-from main import app
-from sales.models import User
-
-
-class Subscription(graphene.ObjectType):
-    users = graphene_sqlalchemy.SQLAlchemyConnectionField(
-        User,
-        active=graphene.Boolean()
-    )
-
-    def resolve_users(self, args, context, info):
-        with app.app_context():
-            query = User.get_query(context)
-            return query.filter_by(id=info.root_value.get('id'))
 
 class Query_(graphene.ObjectType):
 
     all_users = FilterableConnectionField(User.connection,
                                           filters=UserFilter())
+    #
+    # all_deals = FilterableConnectionField(Deal.connection, filters=DealFilter(), sort=None)
+    #
+    # all_customers=FilterableConnectionField(Customer.connection, filters=CustomerFilter())
 
-    all_deals = FilterableConnectionField(Deal.connection, filters=DealFilter(), sort=None)
+class RandomType(graphene.ObjectType):
+    seconds = graphene.Int()
+    random_int = graphene.Int()
 
-    all_customers=FilterableConnectionField(Customer.connection, filters=CustomerFilter())
+
+class Subscription(graphene.ObjectType):
+
+    count_seconds = graphene.Int(up_to=graphene.Int())
+
+    random_int = graphene.Field(RandomType)
+
+    def resolve_count_seconds(root, info, up_to=5):
+        return Observable.interval(1000)\
+                         .map(lambda i: "{0}".format(i))\
+                         .take_while(lambda i: int(i) <= up_to)
+
+    def resolve_random_int(root, info):
+        return Observable.interval(1000).map(lambda i: RandomType(seconds=i, random_int=random.randint(0, 500)))
+
+
+
+
 
 schema = graphene.Schema(query=Query_,
                          mutation=myMutation,
-                         # subscription=Subscription
+                         subscription=Subscription
                          )
