@@ -44,6 +44,8 @@ class CreateUser(graphene.Mutation):
             user = User(email=email, name=name)
             db_session.add(user)
         ok = True
+
+
         return CreateUser(user=user, ok=ok)
 
 

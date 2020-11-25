@@ -13,6 +13,18 @@ services:
       - POSTGRES_DB=sales
     ports:
       - 5432:5432
+  rabbit1:
+    image: heidiks/rabbitmq-delayed-message-exchange:3.6-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - 15673:15672
+      - 5673:5672
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
 
 volumes:
   database-data:
+
+

@@ -1,17 +1,14 @@
 import graphene
-import graphene_sqlalchemy
-
-from main import app
-from sales.models import User
+from rx import Observable
+from memory_profiler import memory_usage
 
 
 class Subscription(graphene.ObjectType):
-    users = graphene_sqlalchemy.SQLAlchemyConnectionField(
-        User,
-        active=graphene.Boolean()
-    )
+    count_seconds = graphene.Int(up_to=graphene.Int())
 
-    def resolve_users(self, args, context, info):
-        with app.app_context():
-            query = User.get_query(context)
-            return query.filter_by(id=info.root_value.get('id'))
+    def resolve_count_seconds(root, info, up_to=5):
+
+        print(memory_usage())
+        return Observable.interval(1000) \
+            .map(lambda i: "{0}".format(i)) \
+            .take_while(lambda i: int(i) <= up_to)
