@@ -1,10 +1,16 @@
+from flask import request
+import os
+
 import graphene
+
 from sqlalchemy.exc import IntegrityError
 
 from sales import models
 from sales.models import User, Base, Deal, Customer, user_deal_table
 from sales.models import db_session as db
 from sales.db_session import db_session_
+
+from graphene_file_upload.scalars import Upload
 
 class User_test(graphene.ObjectType):
     id = graphene.Int()
@@ -179,7 +185,33 @@ class CustomerCreate(graphene.Mutation):
         ok = True
         return CustomerCreate(customer=customer, ok=ok)
 
+UPLOAD_FOLDER = 'files'
 
+class UploadMutation(graphene.Mutation):
+    class Arguments:
+        file = Upload(required=True)
+
+    success = graphene.Boolean()
+
+
+    file = Upload
+    nameFile = graphene.String()
+
+    @staticmethod
+    def mutate(self, info, file,  **kwargs):
+        files = request.files
+
+
+        # do something with your file
+
+
+        for key in request.files:
+            file = request.files[key]
+            file.save(os.path.join(UPLOAD_FOLDER, file.filename))
+
+
+
+        return UploadMutation(success=True)
 
 class myMutation(graphene.ObjectType):
     create_user = CreateUser.Field()
@@ -191,5 +223,6 @@ class myMutation(graphene.ObjectType):
     delete_deal = DeleteDeal.Field()
 
     customer_create = CustomerCreate.Field()
+    upload_file = UploadMutation.Field()
 
 

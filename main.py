@@ -15,7 +15,8 @@ from sales.api.subscriptions import Subscription
 from sales.models import db_session
 from flask_sockets import Sockets
 from graphql_ws.gevent import GeventSubscriptionServer
-
+from graphene_file_upload.scalars import Upload
+from graphene_file_upload.flask import FileUploadGraphQLView
 
 app = Flask(__name__)
 sockets = Sockets(app)
@@ -29,7 +30,8 @@ app.debug = True
 schema = graphene.Schema(
                          query=Query,
                          mutation=myMutation,
-                         subscription=Subscription
+                         subscription=Subscription,
+                         types=[]
                          )
 
 
@@ -44,7 +46,7 @@ def echo_socket(ws):
 
 app.add_url_rule(
     '/graphql',
-    view_func=GraphQLView.as_view(
+    view_func=FileUploadGraphQLView.as_view(
         'graphql',
         schema=schema,
         graphiql=True
