@@ -1,19 +1,24 @@
-FROM ubuntu:18.04
+FROM python:3.8.1-slim-buster
 
+WORKDIR /usr/src/app
+ENV FLASK_APP=app.py
+ENV FLASK_RUN_HOST=0.0.0.0
 
-RUN apt-get update -y && \
-    apt-get install -y python-pip python-dev && \
-    apt-get install libpcap-dev libpq-dev
+RUN apt-get update
+RUN apt install -y libpoppler-cpp-dev
+RUN apt install -y build-essential
 
-# We copy just the requirements.txt first to leverage Docker cache
-COPY ./requirements.txt /app/requirements.txt
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-WORKDIR /app
-#RUN sudo apt-get install libpcap-dev libpq-dev
+RUN pip3 install --upgrade pip
+
+COPY ./requirements.txt /usr/src/app/requirements.txt
+
 RUN pip install -r requirements.txt
 
-COPY . /app
+EXPOSE 5000
 
-ENTRYPOINT [ "python" ]
+COPY . /usr/src/app/
 
-CMD [ "app.py" ]
+CMD ["flask", "run"]

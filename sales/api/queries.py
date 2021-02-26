@@ -23,6 +23,7 @@ class CustomNode_(graphene.Node):
 class UserFilter(FilterSet):
     is_admin = graphene.Boolean()
 
+
     class Meta:
         model = UserModel
         fields = {
@@ -59,6 +60,14 @@ class User(SQLAlchemyObjectType):
         model = UserModel
         interfaces = (CustomNode_, )
 
+
+        def resolve_stageName(self, info):
+            return 'hi'
+
+
+
+
+
 class Deal(SQLAlchemyObjectType):
     class Meta:
         model = DealModel
@@ -81,12 +90,23 @@ class New(graphene.ObjectType):
 
 class Query_(graphene.ObjectType):
 
-    all_users = FilterableConnectionField(User.connection,
-                                          filters=UserFilter())
+    all_users = FilterableConnectionField(User, filters=UserFilter())
     #
-    # all_deals = FilterableConnectionField(Deal.connection, filters=DealFilter(), sort=None)
+    all_deals = FilterableConnectionField(Deal, filters=DealFilter())
     #
-    # all_customers=FilterableConnectionField(Customer.connection, filters=CustomerFilter())
+    all_customers=FilterableConnectionField(Customer, filters=CustomerFilter())
+
+
+
+
+
+
+
+
+
+
+
+
 
 class RandomType(graphene.ObjectType):
     seconds = graphene.Int()

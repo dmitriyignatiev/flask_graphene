@@ -6,14 +6,12 @@ from sales.models import db_session
 from sales.api.queries import schema
 
 from flask_sockets import Sockets
-import graphql_ws
+
 from graphql_ws.gevent import GeventSubscriptionServer
-
-
 
 app = Flask(__name__)
 
-cors = CORS(app, resources={r"/*": {"origins": "*"}})
+cors = CORS(app, resources={r"*": {"origins": "*"}})
 app.debug = True
 sockets = Sockets(app)
 
@@ -41,8 +39,4 @@ def echo_socket(ws):
 def shutdown_session(exception=None):
     db_session.remove()
 
-if __name__ == '__main__':
-    from geventwebsocket import WebSocketServer
-    server = WebSocketServer(('', 5000), app)
-    print('Serving at host 0.0.0.0:5000...\n')
-    server.serve_forever()
+
