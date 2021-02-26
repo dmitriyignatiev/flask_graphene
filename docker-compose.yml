@@ -25,5 +25,14 @@ services:
     ports:
       - 5432:5432
 
+  nginx:
+    container_name: nginx
+    restart: always
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+
 volumes:
   database-data:
