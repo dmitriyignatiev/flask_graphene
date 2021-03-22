@@ -5,7 +5,7 @@ from sqlalchemy.orm import (scoped_session, sessionmaker, relationship,
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Date
 
-engine = create_engine('postgresql://postgres:postgres@db:5432/sales', convert_unicode=True)
+engine = create_engine('postgresql://postgres:postgres@localhost:5433/users', convert_unicode=True)
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
                                          bind=engine))

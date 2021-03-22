@@ -60,12 +60,8 @@ class User(SQLAlchemyObjectType):
         model = UserModel
         interfaces = (CustomNode_, )
 
-
         def resolve_stageName(self, info):
             return 'hi'
-
-
-
 
 
 class Deal(SQLAlchemyObjectType):
@@ -87,6 +83,29 @@ class New(graphene.ObjectType):
 
 
 
+import jwt
+
+class Auth(graphene.ObjectType):
+    access_token = graphene.String()
+    public_key = graphene.String()
+
+
+
+
+
+    def resolve_test(self, info, name):
+        if name == 'Test':
+            return 'TTTT'
+        else:
+            return 'Nothing'
+
+
+    def resolve_deal_connection(root, info, id ):
+        alldeals = [{'id': 1, 'name': 'Deal1'}, {'id':2, 'name': 'Deal2'}]
+        return [i for i in alldeals if i['id'] == id]
+
+
+
 
 class Query_(graphene.ObjectType):
 
@@ -95,6 +114,21 @@ class Query_(graphene.ObjectType):
     all_deals = FilterableConnectionField(Deal, filters=DealFilter())
     #
     all_customers=FilterableConnectionField(Customer, filters=CustomerFilter())
+
+    auth  = graphene.Field(Auth, name=graphene.String(required=True), password=graphene.String(required=True))
+
+    def resolve_auth(self, info, name, password):
+        if name == 'Dima' and password == 'password':
+            private_key = open('jwt-key').read()
+            payload = {'username': 'Dima', 'permissions': ['read'], 'group': ['user']}
+            return Auth(access_token = jwt.encode(payload, private_key, algorithm='RS256'),
+                        public_key = open('jwt-key.pub').read()
+                        )
+        else:
+            return 'username or password is incorrect'
+
+    # def resolve_auth(self, info):
+    #     return Auth()
 
 
 
